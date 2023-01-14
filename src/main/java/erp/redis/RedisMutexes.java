@@ -11,19 +11,24 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author zheng chengdong
  */
-public class RedissonMutexes<ID> implements Mutexes<ID> {
+public class RedisMutexes<ID> implements Mutexes<ID> {
     private RedissonClient redissonClient;
     private String entityType;
     private boolean mock;
     private long maxLockTime;
 
-    public RedissonMutexes(RedissonClient redissonClient, long maxLockTime) {
+    public RedisMutexes(RedissonClient redissonClient, long maxLockTime) {
+        this(redissonClient, maxLockTime, null);
+    }
+
+    public RedisMutexes(RedissonClient redissonClient, long maxLockTime, String entityType) {
         if (redissonClient == null) {
             mock = true;
             return;
         }
         this.redissonClient = redissonClient;
         this.maxLockTime = maxLockTime;
+        this.entityType = entityType;
     }
 
     @Override
@@ -50,7 +55,16 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
         if (mock) {
             return true;
         }
-        return false;
+        RLock lock = redissonClient.getLock(getLockName(id));
+        try {
+            if (lock.tryLock(0, maxLockTime, TimeUnit.MILLISECONDS)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (InterruptedException e) {
+            return false;
+        }
     }
 
     @Override
