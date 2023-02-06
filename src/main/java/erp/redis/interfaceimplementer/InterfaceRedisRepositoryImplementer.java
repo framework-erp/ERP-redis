@@ -11,11 +11,18 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class InterfaceRedisRepositoryImplementer {
-    public static <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient) {
-        String newTypeClsName = defineClass(itfType);
 
+    private static Map<String, Object> itfTypeInstanceMap = new HashMap<>();
+
+    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient) {
+        if (itfTypeInstanceMap.containsKey(itfType.getName())) {
+            return (I) itfTypeInstanceMap.get(itfType.getName());
+        }
+        String newTypeClsName = defineClass(itfType);
         Constructor constructor = null;
         try {
             constructor = Class.forName(newTypeClsName).getDeclaredConstructor(RedisTemplate.class, RedissonClient.class);
@@ -24,15 +31,19 @@ public class InterfaceRedisRepositoryImplementer {
         }
         constructor.setAccessible(true);
         try {
-            return (I) constructor.newInstance(redisTemplate, redissonClient);
+            I instance = (I) constructor.newInstance(redisTemplate, redissonClient);
+            itfTypeInstanceMap.put(itfType.getName(), instance);
+            return instance;
         } catch (Exception e) {
             throw new RuntimeException("newInstance for " + newTypeClsName + " error", e);
         }
     }
 
-    public static <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
+    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
+        if (itfTypeInstanceMap.containsKey(itfType.getName())) {
+            return (I) itfTypeInstanceMap.get(itfType.getName());
+        }
         String newTypeClsName = defineClass(itfType);
-
         Constructor constructor = null;
         try {
             constructor = Class.forName(newTypeClsName).getDeclaredConstructor(RedisTemplate.class, RedissonClient.class, long.class);
@@ -41,7 +52,9 @@ public class InterfaceRedisRepositoryImplementer {
         }
         constructor.setAccessible(true);
         try {
-            return (I) constructor.newInstance(redisTemplate, redissonClient, maxLockTime);
+            I instance = (I) constructor.newInstance(redisTemplate, redissonClient, maxLockTime);
+            itfTypeInstanceMap.put(itfType.getName(), instance);
+            return instance;
         } catch (Exception e) {
             throw new RuntimeException("newInstance for " + newTypeClsName + " error", e);
         }
