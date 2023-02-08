@@ -6,11 +6,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 public class GenericTemplateEntityRepositoryImpl extends RedisRepository<TemplateEntity, Object> implements GenericTemplateEntityRepository<TemplateEntity, Object> {
 
-    public GenericTemplateEntityRepositoryImpl(RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient) {
+    public GenericTemplateEntityRepositoryImpl(RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient) {
         super(redisTemplate, redissonClient);
     }
 
-    public GenericTemplateEntityRepositoryImpl(RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
+    public GenericTemplateEntityRepositoryImpl(RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
         super(redisTemplate, redissonClient, maxLockTime);
     }
 

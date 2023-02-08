@@ -125,6 +125,7 @@ public class InterfaceRedisRepositoryImplementer {
         ClassReader cr = new ClassReader(bytes);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
+            @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 interfaces[0] = itfType.getName().replace('.', '/');
                 name = newTypeClsName.replace('.', '/');
@@ -167,6 +168,7 @@ public class InterfaceRedisRepositoryImplementer {
         ClassReader cr = new ClassReader(bytes);
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
+            @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 interfaces[0] = itfType.getName().replace('.', '/');
                 name = newTypeClsName.replace('.', '/');

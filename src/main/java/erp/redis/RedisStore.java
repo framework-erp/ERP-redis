@@ -15,19 +15,24 @@ import java.util.Set;
 
 public class RedisStore<E, ID> implements Store<E, ID> {
 
-    private RedisTemplate<Object, Object> redisTemplate;
-    private HashOperations<Object, byte[], byte[]> hashOperations;
+    private RedisTemplate<String, Object> redisTemplate;
+    private HashOperations<String, byte[], byte[]> hashOperations;
     private HashMapper<Object, byte[], byte[]> mapper = new ObjectHashMapper();
     private String entityType;
     private MemStore<E, ID> mockStore;
 
-    public RedisStore(RedisTemplate<Object, Object> redisTemplate) {
+    public RedisStore(RedisTemplate<String, Object> redisTemplate) {
+        this(redisTemplate, null);
+    }
+
+    public RedisStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType) {
         if (redisTemplate == null) {
             initAsMock();
             return;
         }
         this.redisTemplate = redisTemplate;
         this.hashOperations = redisTemplate.opsForHash();
+        this.entityType = entityType.getName();
     }
 
     private void initAsMock() {
