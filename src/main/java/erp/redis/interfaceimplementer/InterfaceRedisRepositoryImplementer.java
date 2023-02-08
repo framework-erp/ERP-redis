@@ -18,7 +18,7 @@ public class InterfaceRedisRepositoryImplementer {
 
     private static Map<String, Object> itfTypeInstanceMap = new HashMap<>();
 
-    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient) {
+    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
@@ -39,7 +39,7 @@ public class InterfaceRedisRepositoryImplementer {
         }
     }
 
-    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<Object, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
+    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
