@@ -38,6 +38,9 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     }
 
     public List<String> queryAllIds() {
+        if (redisTemplate == null) {
+            return null;
+        }
         ScanOptions scanOptions = ScanOptions.scanOptions()
                 .match(entityType + ":")
                 .count(Integer.MAX_VALUE)
