@@ -1,4 +1,4 @@
 package erp.redis.interfaceimplementer;
 
-public interface TemplateEntity {
+public class TemplateEntity {
 }

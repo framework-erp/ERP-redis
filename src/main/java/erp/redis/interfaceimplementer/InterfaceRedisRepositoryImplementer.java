@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.TypeVariable;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +23,27 @@ public class InterfaceRedisRepositoryImplementer {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
         String newTypeClsName = defineClass(itfType);
+        Constructor constructor = null;
+        try {
+            constructor = Class.forName(newTypeClsName).getDeclaredConstructor(RedisTemplate.class, RedissonClient.class);
+        } catch (Exception e) {
+            throw new RuntimeException("getDeclaredConstructor for " + newTypeClsName + " error", e);
+        }
+        constructor.setAccessible(true);
+        try {
+            I instance = (I) constructor.newInstance(redisTemplate, redissonClient);
+            itfTypeInstanceMap.put(itfType.getName(), instance);
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("newInstance for " + newTypeClsName + " error", e);
+        }
+    }
+
+    public static synchronized <I> I instance(Class<I> itfType, Class entityType, Class idType, RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient) {
+        if (itfTypeInstanceMap.containsKey(itfType.getName())) {
+            return (I) itfTypeInstanceMap.get(itfType.getName());
+        }
+        String newTypeClsName = defineClass(itfType, entityType, idType);
         Constructor constructor = null;
         try {
             constructor = Class.forName(newTypeClsName).getDeclaredConstructor(RedisTemplate.class, RedissonClient.class);
@@ -60,27 +81,69 @@ public class InterfaceRedisRepositoryImplementer {
         }
     }
 
+    private static <I> String defineClass(Class<I> itfType, Class entityType, Class idType) {
+        byte[] newClsBytes = new byte[0];
+        TypeVariable<Class<I>>[] typeVariables = itfType.getTypeParameters();
+        if (typeVariables.length > 0) {
+            newClsBytes = generateNewClsBytes(itfType, entityType, idType, "erp/redis/interfaceimplementer/GenericTemplateEntityRepositoryImpl.class");
+        } else {
+            newClsBytes = generateNewClsBytes(itfType, entityType, idType, "erp/redis/interfaceimplementer/TemplateEntityRepositoryImpl.class");
+        }
+        String newTypeClsName = "erp.redis.repository.generated." + itfType.getName();
+        callClDefineClass(newTypeClsName, newClsBytes);
+        return newTypeClsName;
+    }
+
     private static <I> String defineClass(Class<I> itfType) {
         byte[] newClsBytes = new byte[0];
         TypeVariable<Class<I>>[] typeVariables = itfType.getTypeParameters();
         if (typeVariables.length > 0) {
-            TypeVariable<Class<I>> entityTypeVariable = typeVariables[0];
-            Type[] entityTypeBounds = entityTypeVariable.getBounds();
-            Class entityType = (Class) entityTypeBounds[0];
-            newClsBytes = generateNewClsBytesForGeneric(itfType, entityType);
+            //接口类型是泛型，自己无法得知具体类型，需从外面传进来，调用方法错误
+            throw new RuntimeException("itfType has type parameter(s) , don't know real type here. try to use 'instance' method that with entityType and idType parameters.");
+        }
+        //接口类型不是泛型，那么先从它继承泛型接口时确定的类型寻找，如果找不到那就是 Object ，如果就没有继承接口那么解析 find 方法获得
+        if (itfType.getInterfaces().length > 0) {
+            Class entityType = null;
+            Class idType = null;
+            java.lang.reflect.Type genType = itfType.getGenericInterfaces()[0];
+            while (true) {
+                if (genType instanceof ParameterizedType) {
+                    break;
+                }
+                if (((Class) genType).getInterfaces().length == 0) {
+                    genType = null;
+                    break;
+                }
+                genType = ((Class) genType).getGenericInterfaces()[0];
+            }
+            if (genType == null) {
+                entityType = Object.class;
+                idType = Object.class;
+            } else {
+                java.lang.reflect.Type[] paramsTypes = ((ParameterizedType) genType).getActualTypeArguments();
+                entityType = (Class) paramsTypes[0];
+                //TODO paramsTypes.length for idType
+
+            }
+
         } else {
             for (Method method : itfType.getMethods()) {
                 if (method.getName().equals("find")) {
                     Class entityType = method.getReturnType();
                     Class idType = method.getParameterTypes()[0];
-                    newClsBytes = generateNewClsBytes(itfType, entityType, idType);
+                    newClsBytes = generateNewClsBytes(itfType, entityType, idType, "erp/redis/interfaceimplementer/TemplateEntityRepositoryImpl.class");
                     break;
                 }
             }
         }
+
         String newTypeClsName = "erp.redis.repository.generated." + itfType.getName();
-        Object[] argArray = new Object[]{newTypeClsName, newClsBytes,
-                new Integer(0), new Integer(newClsBytes.length)};
+        callClDefineClass(newTypeClsName, newClsBytes);
+        return newTypeClsName;
+    }
+
+    private static void callClDefineClass(String newTypeClsName, byte[] newClsBytes) {
+        Object[] argArray = new Object[]{newTypeClsName, newClsBytes, Integer.valueOf(0), Integer.valueOf(newClsBytes.length)};
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         Class cls = null;
         try {
@@ -102,10 +165,9 @@ public class InterfaceRedisRepositoryImplementer {
         } catch (Exception e) {
             throw new RuntimeException("invoke defineClass error", e);
         }
-        return newTypeClsName;
     }
 
-    private static byte[] generateNewClsBytes(Class itfType, Class entityType, Class idType) {
+    private static byte[] generateNewClsBytes(Class itfType, Class entityType, Class idType, String tplClassResourceName) {
         String entityTypeDesc = "L" + entityType.getName().replace('.', '/') + ";";
         String templateEntityTypeDesc = "Lerp/redis/interfaceimplementer/TemplateEntity;";
 
@@ -151,46 +213,4 @@ public class InterfaceRedisRepositoryImplementer {
         return cw.toByteArray();
     }
 
-    private static byte[] generateNewClsBytesForGeneric(Class itfType, Class entityType) {
-        String entityTypeDesc = "L" + entityType.getName().replace('.', '/') + ";";
-        String templateEntityTypeDesc = "Lerp/redis/interfaceimplementer/TemplateEntity;";
-
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("erp/redis/interfaceimplementer/GenericTemplateEntityRepositoryImpl.class");
-        byte[] bytes = new byte[0];
-        try {
-            bytes = new byte[is.available()];
-            is.read(bytes);
-        } catch (IOException e) {
-            throw new RuntimeException("read GenericTemplateEntityRepositoryImpl.class error", e);
-        }
-
-        String newTypeClsName = "erp.redis.repository.generated." + itfType.getName();
-        ClassReader cr = new ClassReader(bytes);
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cr.accept(new ClassVisitor(Opcodes.ASM5, cw) {
-            @Override
-            public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                interfaces[0] = itfType.getName().replace('.', '/');
-                name = newTypeClsName.replace('.', '/');
-                signature = signature.replaceAll(templateEntityTypeDesc, entityTypeDesc);
-                super.visit(version, access, name, signature, superName, interfaces);
-            }
-
-            @Override
-            public MethodVisitor visitMethod(int access, String mthName, String mthDesc, String signature, String[] exceptions) {
-                mthDesc = mthDesc.replaceAll(templateEntityTypeDesc, entityTypeDesc);
-                return new AdviceAdapter(Opcodes.ASM5, super.visitMethod(access, mthName, mthDesc, signature, exceptions), access, mthName, mthDesc) {
-                    @Override
-                    public void visitTypeInsn(final int opcode, final String type) {
-                        String realType = type;
-                        if (Opcodes.CHECKCAST == opcode) {
-                            realType = entityType.getName().replace('.', '/');
-                        }
-                        super.visitTypeInsn(opcode, realType);
-                    }
-                };
-            }
-        }, ClassReader.EXPAND_FRAMES);
-        return cw.toByteArray();
-    }
 }
