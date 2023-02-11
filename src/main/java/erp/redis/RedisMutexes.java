@@ -37,6 +37,9 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
             return 1;
         }
         RLock lock = redissonClient.getLock(getLockName(id));
+        if (!lock.isLocked()) {
+            return -1;
+        }
         try {
             if (lock.tryLock(0, maxLockTime, TimeUnit.MILLISECONDS)) {
                 RBucket<String> processNameRBucket = redissonClient.getBucket(getProcessNameRBucketKey(id));
