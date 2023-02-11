@@ -4,7 +4,7 @@ import erp.redis.RedisRepository;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 
-public class GenericTemplateEntityRepositoryImpl extends RedisRepository<TemplateEntity, Object> implements GenericTemplateEntityRepository<TemplateEntity, Object> {
+public class GenericTemplateEntityRepositoryImpl extends RedisRepository<TemplateEntityImpl, Object> implements GenericTemplateEntityRepository<TemplateEntityImpl, Object> {
 
     public GenericTemplateEntityRepositoryImpl(RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient) {
         super(redisTemplate, redissonClient);

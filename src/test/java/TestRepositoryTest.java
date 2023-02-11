@@ -8,14 +8,15 @@ public class TestRepositoryTest {
 
     @Test
     public void test() {
-        TestEntityRepository<TestEntity, Object> testEntityRepository =
-                InterfaceRedisRepositoryImplementer.instance(TestEntityRepository.class, null, null);
-        TestEntity testEntity0 = ERP.go("test", () -> {
-            TestEntity testEntity = new TestEntityImpl("0");
+        TestEntityRepository<TestEntityImpl, String> testEntityRepository =
+                InterfaceRedisRepositoryImplementer.
+                        instance(TestEntityRepository.class, TestEntityImpl.class, String.class, null, null);
+        TestEntityImpl testEntity0 = ERP.go("test", () -> {
+            TestEntityImpl testEntity = new TestEntityImpl("0");
             testEntityRepository.put(testEntity);
             return testEntity;
         });
-        TestEntity testEntity1 = testEntityRepository.find(testEntity0.getId());
+        TestEntityImpl testEntity1 = testEntityRepository.find(testEntity0.getId());
         assertEquals(testEntity1.getId(), testEntity0.getId());
 
         TestEntityImplRepository testEntityImplRepository =

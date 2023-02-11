@@ -1,15 +1,15 @@
 package erp.redis.interfaceimplementer;
 
 public interface TemplateEntityRepository {
-    TemplateEntity take(Object id);
+    TemplateEntityImpl take(Object id);
 
-    TemplateEntity find(Object id);
+    TemplateEntityImpl find(Object id);
 
-    void put(TemplateEntity entity);
+    void put(TemplateEntityImpl entity);
 
-    TemplateEntity putIfAbsent(TemplateEntity entity);
+    TemplateEntityImpl putIfAbsent(TemplateEntityImpl entity);
 
-    TemplateEntity takeOrPutIfAbsent(Object id, TemplateEntity newEntity);
+    TemplateEntityImpl takeOrPutIfAbsent(Object id, TemplateEntityImpl newEntity);
 
-    TemplateEntity remove(Object id);
+    TemplateEntityImpl remove(Object id);
 }
