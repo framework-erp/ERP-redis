@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,10 +43,15 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
             return null;
         }
         ScanOptions scanOptions = ScanOptions.scanOptions()
-                .match(entityType + ":")
+                .match("*" + entityType + ":*")
                 .count(Integer.MAX_VALUE)
                 .build();
         Cursor<String> cursor = redisTemplate.scan(scanOptions);
-        return cursor.stream().collect(Collectors.toList());
+        List<String> rawList = cursor.stream().collect(Collectors.toList());
+        List<String> idList = new ArrayList<>(rawList.size());
+        for (String rawId : rawList) {
+            idList.add(rawId.split(":")[1]);
+        }
+        return idList;
     }
 }

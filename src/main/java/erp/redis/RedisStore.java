@@ -83,7 +83,7 @@ public class RedisStore<E, ID> implements Store<E, ID> {
         }
         List<String> strIdList = new ArrayList<>();
         for (Object id : ids) {
-            strIdList.add(id.toString());
+            strIdList.add(getKey((ID) id));
         }
         redisTemplate.delete(strIdList);
     }
