@@ -101,6 +101,10 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
         }
     }
 
+    public void setRedissonClient(RedissonClient redissonClient) {
+        this.redissonClient = redissonClient;
+    }
+
     public void setEntityType(String entityType) {
         this.entityType = entityType;
     }

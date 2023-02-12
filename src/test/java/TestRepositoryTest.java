@@ -10,7 +10,7 @@ public class TestRepositoryTest {
     public void test() {
         TestEntityRepository<TestEntityImpl, String> testEntityRepository =
                 InterfaceRedisRepositoryImplementer.
-                        instance(TestEntityRepository.class, TestEntityImpl.class, String.class, null, null);
+                        instance(TestEntityRepository.class, TestEntityImpl.class, String.class, null);
         TestEntityImpl testEntity0 = ERP.go("test", () -> {
             TestEntityImpl testEntity = new TestEntityImpl("0");
             testEntityRepository.put(testEntity);
@@ -20,7 +20,7 @@ public class TestRepositoryTest {
         assertEquals(testEntity1.getId(), testEntity0.getId());
 
         TestEntityImplRepository testEntityImplRepository =
-                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepository.class, null, null);
+                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepository.class, null);
         TestEntityImpl testEntityImpl0 = ERP.go("test", () -> {
             TestEntityImpl testEntityImpl = new TestEntityImpl("1");
             testEntityImplRepository.put(testEntityImpl);
@@ -30,7 +30,7 @@ public class TestRepositoryTest {
         assertEquals(testEntityImpl1.getId(), testEntityImpl0.getId());
 
         TestEntityImplRepositoryExtendsCommon testEntityImplRepositoryExtendsCommon =
-                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepositoryExtendsCommon.class, null, null);
+                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepositoryExtendsCommon.class, null);
         TestEntityImpl testEntityImpl2 = ERP.go("test", () -> {
             TestEntityImpl testEntityImpl = new TestEntityImpl("2");
             testEntityImplRepositoryExtendsCommon.put(testEntityImpl);
@@ -40,7 +40,7 @@ public class TestRepositoryTest {
         assertEquals(testEntityImpl3.getId(), testEntityImpl2.getId());
 
         TestEntityImplRepositoryExtendsSuper testEntityImplRepositoryExtendsSuper =
-                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepositoryExtendsSuper.class, null, null);
+                InterfaceRedisRepositoryImplementer.instance(TestEntityImplRepositoryExtendsSuper.class, null);
         TestEntityImpl testEntityImpl4 = ERP.go("test", () -> {
             TestEntityImpl testEntityImpl = new TestEntityImpl("3");
             testEntityImplRepositoryExtendsSuper.put(testEntityImpl);
