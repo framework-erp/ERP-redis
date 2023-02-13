@@ -11,11 +11,15 @@ import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InterfaceRedisRepositoryImplementer {
+public class InterfaceRedisRepositoryBuilder {
 
     private static Map<String, Object> itfTypeInstanceMap = new HashMap<>();
 
-    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate) {
+    public static InterfaceRedisRepositoryBuilder newBuilder() {
+        return new InterfaceRedisRepositoryBuilder();
+    }
+
+    private static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
@@ -36,7 +40,7 @@ public class InterfaceRedisRepositoryImplementer {
         }
     }
 
-    public static synchronized <I> I instance(Class<I> itfType, Class entityType, Class idType, RedisTemplate<String, Object> redisTemplate) {
+    private static synchronized <I> I instance(Class<I> itfType, Class entityType, Class idType, RedisTemplate<String, Object> redisTemplate) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
@@ -57,7 +61,7 @@ public class InterfaceRedisRepositoryImplementer {
         }
     }
 
-    public static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
+    private static synchronized <I> I instance(Class<I> itfType, RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
@@ -78,7 +82,7 @@ public class InterfaceRedisRepositoryImplementer {
         }
     }
 
-    public static synchronized <I> I instance(Class<I> itfType, Class entityType, Class idType, RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
+    private static synchronized <I> I instance(Class<I> itfType, Class entityType, Class idType, RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
         if (itfTypeInstanceMap.containsKey(itfType.getName())) {
             return (I) itfTypeInstanceMap.get(itfType.getName());
         }
@@ -252,6 +256,40 @@ public class InterfaceRedisRepositoryImplementer {
             }
         }, ClassReader.EXPAND_FRAMES);
         return cw.toByteArray();
+    }
+
+    private Long maxLockTime;
+    private boolean genericItf;
+    private Class entityType;
+    private Class idType;
+
+    public InterfaceRedisRepositoryBuilder maxLockTime(long maxLockTime) {
+        this.maxLockTime = maxLockTime;
+        return this;
+    }
+
+    public InterfaceRedisRepositoryBuilder genericItfTypeValue(Class entityType, Class idType) {
+        genericItf = true;
+        this.entityType = entityType;
+        this.idType = idType;
+        return this;
+    }
+
+
+    public <I> I build(Class<I> itfType, RedisTemplate<String, Object> redisTemplate) {
+        if (genericItf) {
+            if (maxLockTime == null) {
+                return instance(itfType, entityType, idType, redisTemplate);
+            } else {
+                return instance(itfType, entityType, idType, redisTemplate, maxLockTime);
+            }
+        } else {
+            if (maxLockTime == null) {
+                return instance(itfType, redisTemplate);
+            } else {
+                return instance(itfType, redisTemplate, maxLockTime);
+            }
+        }
     }
 
 }
