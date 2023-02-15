@@ -32,7 +32,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     }
 
     public RedisRepository(RedisTemplate<String, Object> redisTemplate, RedissonClient redissonClient, long maxLockTime, Class<E> entityClass) {
-        super(new RedisStore<>(redisTemplate), new RedisMutexes<>(redissonClient, maxLockTime), entityClass);
+        super(new RedisStore<>(redisTemplate), new RedisMutexes<>(redissonClient, maxLockTime), entityClass.getName());
         ((RedisStore) store).setEntityType(entityType);
         ((RedisMutexes) mutexes).setEntityType(entityType);
         ((RedisMutexes) mutexes).setRedissonClient(getRedissonClientFromTemplate(redisTemplate));
