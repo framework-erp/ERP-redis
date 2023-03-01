@@ -2,7 +2,7 @@ package erp.redis;
 
 import erp.process.ProcessEntity;
 import erp.repository.Store;
-import erp.repository.impl.MemStore;
+import erp.repository.impl.mem.MemStore;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.HashMapper;
