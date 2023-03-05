@@ -46,7 +46,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
         List<String> rawList = cursor.stream().collect(Collectors.toList());
         List<String> idList = new ArrayList<>(rawList.size());
         for (String rawId : rawList) {
-            idList.add(rawId.split(":")[1]);
+            idList.add(rawId.split(":")[2]);
         }
         return idList;
     }
