@@ -39,7 +39,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
             return null;
         }
         ScanOptions scanOptions = ScanOptions.scanOptions()
-                .match("*" + entityType + ":*")
+                .match("*entity:" + entityType + ":*")
                 .count(Integer.MAX_VALUE)
                 .build();
         Cursor<String> cursor = redisTemplate.scan(scanOptions);

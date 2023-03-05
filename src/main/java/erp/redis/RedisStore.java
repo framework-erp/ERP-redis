@@ -89,7 +89,7 @@ public class RedisStore<E, ID> implements Store<E, ID> {
     }
 
     private String getKey(ID id) {
-        return entityType + ":" + id;
+        return "entity:" + entityType + ":" + id;
     }
 
     public void setEntityType(String entityType) {
