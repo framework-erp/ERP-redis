@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class RedisMutexes<ID> implements Mutexes<ID> {
 
@@ -40,7 +41,7 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
         if (lock == null || lock.isEmpty()) {
             return -1;
         }
-        boolean set = valueOperations.setIfAbsent(getKey(id), processName);
+        boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set ? 1 : 0;
     }
 
