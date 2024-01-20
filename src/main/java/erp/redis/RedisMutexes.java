@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class RedisMutexes<ID> implements Mutexes<ID> {
 
@@ -15,11 +16,7 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
     private boolean mock;
     private long maxLockTime;
 
-    public RedisMutexes(RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
-        this(redisTemplate, maxLockTime, null);
-    }
-
-    public RedisMutexes(RedisTemplate<String, Object> redisTemplate, long maxLockTime, String entityType) {
+    public RedisMutexes(RedisTemplate<String, Object> redisTemplate, String entityType, long maxLockTime) {
         if (redisTemplate == null) {
             mock = true;
             return;
@@ -40,7 +37,7 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
         if (lock == null || lock.isEmpty()) {
             return -1;
         }
-        boolean set = valueOperations.setIfAbsent(getKey(id), processName);
+        boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set ? 1 : 0;
     }
 
@@ -50,7 +47,7 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
             return true;
         }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-        boolean set = valueOperations.setIfAbsent(getKey(id), processName);
+        boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set;
     }
 

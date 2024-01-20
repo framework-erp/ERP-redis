@@ -21,12 +21,13 @@ public class RedisStore<E, ID> implements Store<E, ID> {
     private String entityType;
     private MemStore<E, ID> mockStore;
 
-    public RedisStore(RedisTemplate<String, Object> redisTemplate) {
+    public RedisStore(RedisTemplate<String, Object> redisTemplate, String entityType) {
         if (redisTemplate == null) {
             initAsMock();
             return;
         }
         this.redisTemplate = redisTemplate;
+        this.entityType = entityType;
         this.hashOperations = redisTemplate.opsForHash();
     }
 
@@ -92,7 +93,4 @@ public class RedisStore<E, ID> implements Store<E, ID> {
         return "entity:" + entityType + ":" + id;
     }
 
-    public void setEntityType(String entityType) {
-        this.entityType = entityType;
-    }
 }

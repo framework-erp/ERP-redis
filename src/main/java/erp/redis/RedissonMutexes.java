@@ -20,11 +20,7 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
     private boolean mock;
     private long maxLockTime;
 
-    public RedissonMutexes(RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
-        this(redisTemplate, maxLockTime, null);
-    }
-
-    public RedissonMutexes(RedisTemplate<String, Object> redisTemplate, long maxLockTime, String entityType) {
+    public RedissonMutexes(RedisTemplate<String, Object> redisTemplate, String entityType, long maxLockTime) {
         if (redisTemplate == null) {
             mock = true;
             return;

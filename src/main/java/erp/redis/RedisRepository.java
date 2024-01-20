@@ -13,26 +13,18 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     protected RedisTemplate<String, Object> redisTemplate;
 
     protected RedisRepository(RedisTemplate<String, Object> redisTemplate) {
-        this(redisTemplate, 30000);
-    }
-
-    protected RedisRepository(RedisTemplate<String, Object> redisTemplate, long maxLockTime) {
-        super(new RedisStore<>(redisTemplate), new RedisMutexes<>(redisTemplate, maxLockTime));
-        ((RedisStore) store).setEntityType(entityType);
-        ((RedisMutexes) mutexes).setEntityType(entityType);
+        this.store = new RedisStore<>(redisTemplate, this.entityType);
+        this.mutexes = new RedisMutexes<>(redisTemplate, this.entityType, 30000L);
         this.redisTemplate = redisTemplate;
     }
 
-    public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityType) {
-        this(redisTemplate, 30000, entityType);
-    }
-
-    public RedisRepository(RedisTemplate<String, Object> redisTemplate, long maxLockTime, Class<E> entityClass) {
-        super(new RedisStore<>(redisTemplate), new RedisMutexes<>(redisTemplate, maxLockTime), entityClass.getName());
-        ((RedisStore) store).setEntityType(entityType);
-        ((RedisMutexes) mutexes).setEntityType(entityType);
+    public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass) {
+        super(entityClass.getName());
+        this.store = new RedisStore<>(redisTemplate, this.entityType);
+        this.mutexes = new RedisMutexes<>(redisTemplate, this.entityType, 30000L);
         this.redisTemplate = redisTemplate;
     }
+
 
     public List<String> queryAllIds() {
         if (redisTemplate == null) {
