@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 public class RedisRepository<E, ID> extends Repository<E, ID> {
     protected RedisTemplate<String, Object> redisTemplate;
+    protected int scanArgsCount = 1000;
 
     protected RedisRepository(RedisTemplate<String, Object> redisTemplate) {
         this.store = new RedisStore<>(redisTemplate, this.entityType);
@@ -32,7 +33,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
         }
         ScanOptions scanOptions = ScanOptions.scanOptions()
                 .match("*entity:" + entityType + ":*")
-                .count(Integer.MAX_VALUE)
+                .count(scanArgsCount)
                 .build();
         Cursor<String> cursor = redisTemplate.scan(scanOptions);
         List<String> rawList = cursor.stream().collect(Collectors.toList());
@@ -41,5 +42,9 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
             idList.add(rawId.split(":")[2]);
         }
         return idList;
+    }
+
+    public void setScanCount(int count) {
+        this.scanArgsCount = count;
     }
 }
