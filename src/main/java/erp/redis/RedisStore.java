@@ -70,6 +70,10 @@ public class RedisStore<E, ID> implements Store<E, ID> {
             }
         }
         if (entitiesToUpdate != null) {
+
+            //必须先删掉，否则无法处理有值变成null的情况
+            removeAll(entitiesToUpdate.keySet());
+
             for (Map.Entry<Object, ProcessEntity> entry : entitiesToUpdate.entrySet()) {
                 insert((ID) entry.getKey(), (E) entry.getValue().getEntity());
             }
