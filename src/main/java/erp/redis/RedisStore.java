@@ -18,16 +18,16 @@ public class RedisStore<E, ID> implements Store<E, ID> {
     private RedisTemplate<String, Object> redisTemplate;
     private HashOperations<String, byte[], byte[]> hashOperations;
     private HashMapper<Object, byte[], byte[]> mapper = new ObjectHashMapper();
-    private String entityType;
+    private String repositoryKey;
     private MemStore<E, ID> mockStore;
 
-    public RedisStore(RedisTemplate<String, Object> redisTemplate, String entityType) {
+    public RedisStore(RedisTemplate<String, Object> redisTemplate, String repositoryKey) {
         if (redisTemplate == null) {
             initAsMock();
             return;
         }
         this.redisTemplate = redisTemplate;
-        this.entityType = entityType;
+        this.repositoryKey = repositoryKey;
         this.hashOperations = redisTemplate.opsForHash();
     }
 
@@ -94,7 +94,7 @@ public class RedisStore<E, ID> implements Store<E, ID> {
     }
 
     private String getKey(ID id) {
-        return "entity:" + entityType + ":" + id;
+        return "repository:" + repositoryKey + ":" + id;
     }
 
 }

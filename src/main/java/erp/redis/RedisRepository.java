@@ -10,19 +10,30 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RedisRepository<E, ID> extends Repository<E, ID> {
+    protected String repositoryKey;
     protected RedisTemplate<String, Object> redisTemplate;
     protected int scanArgsCount = 1000;
 
     protected RedisRepository(RedisTemplate<String, Object> redisTemplate) {
-        this.store = new RedisStore<>(redisTemplate, this.entityType);
-        this.mutexes = new RedisMutexes<>(redisTemplate, this.entityType, 30000L);
+        this.repositoryKey = entityType.getSimpleName();
+        this.store = new RedisStore<>(redisTemplate, repositoryKey);
+        this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
     }
 
     public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass) {
-        super(entityClass.getName());
-        this.store = new RedisStore<>(redisTemplate, this.entityType);
-        this.mutexes = new RedisMutexes<>(redisTemplate, this.entityType, 30000L);
+        super(entityClass);
+        this.repositoryKey = entityClass.getSimpleName();
+        this.store = new RedisStore<>(redisTemplate, repositoryKey);
+        this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
+        this.redisTemplate = redisTemplate;
+    }
+
+    public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass, String repositoryName) {
+        super(entityClass, repositoryName);
+        this.repositoryKey = repositoryName;
+        this.store = new RedisStore<>(redisTemplate, repositoryKey);
+        this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
     }
 
@@ -32,7 +43,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
             return null;
         }
         ScanOptions scanOptions = ScanOptions.scanOptions()
-                .match("*entity:" + entityType + ":*")
+                .match("*repository:" + repositoryKey + ":*")
                 .count(scanArgsCount)
                 .build();
         Cursor<String> cursor = redisTemplate.scan(scanOptions);
@@ -46,5 +57,9 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
 
     public void setScanCount(int count) {
         this.scanArgsCount = count;
+    }
+
+    public String getRepositoryKey() {
+        return repositoryKey;
     }
 }

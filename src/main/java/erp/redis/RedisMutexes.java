@@ -12,18 +12,18 @@ import java.util.concurrent.TimeUnit;
 public class RedisMutexes<ID> implements Mutexes<ID> {
 
     RedisTemplate<String, Object> redisTemplate;
-    private String entityType;
+    private String mutexesKey;
     private boolean mock;
     private long maxLockTime;
 
-    public RedisMutexes(RedisTemplate<String, Object> redisTemplate, String entityType, long maxLockTime) {
+    public RedisMutexes(RedisTemplate<String, Object> redisTemplate, String mutexesKey, long maxLockTime) {
         if (redisTemplate == null) {
             mock = true;
             return;
         }
         this.redisTemplate = redisTemplate;
         this.maxLockTime = maxLockTime;
-        this.entityType = entityType;
+        this.mutexesKey = mutexesKey;
     }
 
 
@@ -86,10 +86,10 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
     }
 
     private String getKey(ID id) {
-        return "mutexes:" + entityType + ":" + id.toString();
+        return "mutexes:" + mutexesKey + ":" + id.toString();
     }
 
-    public void setEntityType(String entityType) {
-        this.entityType = entityType;
+    public void setMutexesKey(String mutexesKey) {
+        this.mutexesKey = mutexesKey;
     }
 }
