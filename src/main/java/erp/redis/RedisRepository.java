@@ -23,6 +23,15 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
         AppContext.registerRepository(this);
     }
 
+    protected RedisRepository(RedisTemplate<String, Object> redisTemplate, String repositoryName) {
+        super(repositoryName);
+        this.repositoryKey = repositoryName;
+        this.store = new RedisStore<>(redisTemplate, repositoryKey);
+        this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
+        this.redisTemplate = redisTemplate;
+        AppContext.registerRepository(this);
+    }
+
     public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass) {
         super(entityClass);
         this.repositoryKey = entityClass.getSimpleName();
