@@ -55,16 +55,21 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
         if (redisTemplate == null) {
             return null;
         }
+        List<String> idList = new ArrayList<>();
         ScanOptions scanOptions = ScanOptions.scanOptions()
                 .match("*repository:" + repositoryKey + ":*")
                 .count(scanArgsCount)
                 .build();
-        Cursor<String> cursor = redisTemplate.scan(scanOptions);
-        List<String> rawList = cursor.stream().collect(Collectors.toList());
-        List<String> idList = new ArrayList<>(rawList.size());
-        for (String rawId : rawList) {
-            idList.add(rawId.split(":")[2]);
-        }
+        Cursor<String> cursor;
+        long cursorPosition = 0;
+        do {
+            cursor = redisTemplate.scan(scanOptions);
+            List<String> rawList = cursor.stream().collect(Collectors.toList());
+            for (String rawId : rawList) {
+                idList.add(rawId.split(":")[2]);
+            }
+            cursorPosition = cursor.getPosition();
+        } while (cursorPosition != 0);
         return idList;
     }
 
