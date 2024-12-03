@@ -70,6 +70,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
             }
             cursorPosition = cursor.getPosition();
         } while (cursorPosition != 0);
+        cursor.close();
         return idList;
     }
 
