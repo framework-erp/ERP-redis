@@ -54,8 +54,12 @@ public class RedisStore<E, ID> implements Store<E, ID> {
             mockStore.insert(id, entity);
             return;
         }
+        String key = getKey(id);
+        if (redisTemplate.hasKey(key)) {
+            throw new DuplicateKeyException(key);
+        }
         Map<byte[], byte[]> mappedHash = mapper.toHash(entity);
-        hashOperations.putAll(getKey(id), mappedHash);
+        hashOperations.putAll(key, mappedHash);
     }
 
     @Override
