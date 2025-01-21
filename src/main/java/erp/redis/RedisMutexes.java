@@ -33,10 +33,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
             return 1;
         }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-        String lock = (String) valueOperations.get(getKey(id));
-        if (lock == null || lock.isEmpty()) {
-            return -1;
-        }
         boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set ? 1 : 0;
     }
@@ -61,6 +57,10 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
             strIdList.add(getKey((ID) id));
         }
         redisTemplate.delete(strIdList);
+    }
+
+    public void unlock(ID id) {
+        redisTemplate.delete(getKey(id));
     }
 
     @Override
@@ -92,4 +92,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
     public void setMutexesKey(String mutexesKey) {
         this.mutexesKey = mutexesKey;
     }
+
+
 }

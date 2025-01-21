@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.ScanOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RedisRepository<E, ID> extends Repository<E, ID> {
     protected String repositoryKey;
@@ -50,6 +49,15 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
         AppContext.registerRepository(this);
     }
 
+    @Override
+    public E take(ID id) {
+        E entity = super.take(id);
+        if (entity == null) {
+            //Repository的takeOrPutIfAbsent方法的逻辑认为空entity是没有锁的，所以这里要解锁
+            ((RedisMutexes) this.mutexes).unlock(id);
+        }
+        return entity;
+    }
 
     public List<String> queryAllIds() {
         if (redisTemplate == null) {
