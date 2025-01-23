@@ -13,7 +13,7 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.*;
 
-public class RedisJsonStore<E, ID> implements Store<E, ID> {
+public class JsonRedisStore<E, ID> implements Store<E, ID> {
 
     private Class<E> entityType;
     private RedisTemplate<String, Object> redisTemplate;
@@ -21,7 +21,7 @@ public class RedisJsonStore<E, ID> implements Store<E, ID> {
     private MemStore<E, ID> mockStore;
     ObjectMapper mapper;
 
-    public RedisJsonStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType) {
+    public JsonRedisStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType) {
         if (redisTemplate == null) {
             initAsMock();
             return;
