@@ -1,6 +1,12 @@
 package erp.redis;
 
+import erp.AppContext;
 import erp.process.ProcessEntity;
+import erp.process.ThreadBoundProcessContextArray;
+import erp.redis.pipeline.Operations;
+import erp.redis.pipeline.PipelineProcessContext;
+import erp.redis.pipeline.PipelineProcessListener;
+import erp.redis.pipeline.ThreadBoundPipelineProcessContextArray;
 import erp.repository.Store;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
@@ -13,11 +19,13 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
     private Store<E, ID> delegate;
     private RedisTemplate<String, Object> redisTemplate;
     private String keyOfKeySet;
+    private PipelineProcessListener pipelineProcessListener;
 
     public KeySetAttachedRedisStore(Store<E, ID> delegate, RedisTemplate<String, Object> redisTemplate, String keyOfKeySet) {
         this.delegate = delegate;
         this.redisTemplate = redisTemplate;
         this.keyOfKeySet = keyOfKeySet;
+        this.pipelineProcessListener = AppContext.getProcessListener(PipelineProcessListener.class);
     }
 
     @Override
@@ -36,6 +44,15 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
         if (redisTemplate == null) {
             return;
         }
+        if (isPipelineProcess()) {
+            PipelineProcessContext pipelineProcessContext = ThreadBoundPipelineProcessContextArray.getProcessContext();
+            SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
+            String[] keys = entitiesToInsert.keySet().stream().map(Object::toString).toArray(String[]::new);
+            if (keys.length > 0) {
+                pipelineProcessContext.addOperation(redisTemplate, Operations.add_SetOperations, keyOfKeySet, keys);
+            }
+            return;
+        }
         SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
         String[] keys = entitiesToInsert.keySet().stream().map(Object::toString).toArray(String[]::new);
         if (keys.length > 0) {
@@ -49,11 +66,24 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
         if (redisTemplate == null) {
             return;
         }
+        if (isPipelineProcess()) {
+            PipelineProcessContext pipelineProcessContext = ThreadBoundPipelineProcessContextArray.getProcessContext();
+            String[] keys = ids.stream().map(Object::toString).toArray(String[]::new);
+            if (keys.length > 0) {
+                pipelineProcessContext.addOperation(redisTemplate, Operations.remove_SetOperations, keyOfKeySet, keys);
+            }
+            return;
+        }
         SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
         String[] keys = ids.stream().map(Object::toString).toArray(String[]::new);
         if (keys.length > 0) {
             setOperations.remove(keyOfKeySet, keys);
         }
+    }
+
+    private boolean isPipelineProcess() {
+        return pipelineProcessListener != null &&
+                pipelineProcessListener.isPipelineProcess(ThreadBoundProcessContextArray.getProcessContext().getProcessName());
     }
 
 }
