@@ -8,6 +8,10 @@ import java.util.*;
 public class PipelineProcessContext {
     private Map<RedisTemplate<String, Object>, List<Operation>> operationMap = new HashMap<>();
 
+    public void clear() {
+        operationMap.clear();
+    }
+
     public void addOperation(RedisTemplate<String, Object> redisTemplate, Operations operations, Object... args) {
         Operation operation = new Operation();
         operation.setOperations(operations);
@@ -98,4 +102,6 @@ public class PipelineProcessContext {
             }
         }
     }
+
+
 }

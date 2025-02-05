@@ -15,7 +15,8 @@ public class PipelineProcessListener implements ProcessListener {
     @Override
     public void beforeProcessStart(String processName) {
         if (isPipelineProcess(processName)) {
-            ThreadBoundPipelineProcessContextArray.createPipelineProcessContext();
+            PipelineProcessContext ctx = ThreadBoundPipelineProcessContextArray.getProcessContext();
+            ctx.clear();
         }
     }
 
