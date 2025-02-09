@@ -20,7 +20,7 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
     protected AllIdQuerySupportedRedisRepository(RedisTemplate<String, Object> redisTemplate) {
         this.repositoryKey = entityType.getSimpleName();
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
-        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType), redisTemplate, keyOfKeySet);
+        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -30,7 +30,7 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
         super(repositoryName);
         this.repositoryKey = repositoryName;
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
-        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType), redisTemplate, keyOfKeySet);
+        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -40,7 +40,7 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
         super(entityClass);
         this.repositoryKey = entityClass.getSimpleName();
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
-        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType), redisTemplate, keyOfKeySet);
+        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -50,7 +50,7 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
         super(entityClass, repositoryName);
         this.repositoryKey = repositoryName;
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
-        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType), redisTemplate, keyOfKeySet);
+        this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);

@@ -10,7 +10,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
 
     protected RedisRepository(RedisTemplate<String, Object> redisTemplate) {
         this.repositoryKey = entityType.getSimpleName();
-        this.store = new JsonRedisStore<>(redisTemplate, entityType);
+        this.store = new JsonRedisStore<>(redisTemplate, entityType, repositoryKey);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -19,7 +19,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     protected RedisRepository(RedisTemplate<String, Object> redisTemplate, String repositoryName) {
         super(repositoryName);
         this.repositoryKey = repositoryName;
-        this.store = new JsonRedisStore<>(redisTemplate, entityType);
+        this.store = new JsonRedisStore<>(redisTemplate, entityType, repositoryKey);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -28,7 +28,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass) {
         super(entityClass);
         this.repositoryKey = entityClass.getSimpleName();
-        this.store = new JsonRedisStore<>(redisTemplate, entityType);
+        this.store = new JsonRedisStore<>(redisTemplate, entityType, repositoryKey);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);
@@ -37,7 +37,7 @@ public class RedisRepository<E, ID> extends Repository<E, ID> {
     public RedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass, String repositoryName) {
         super(entityClass, repositoryName);
         this.repositoryKey = repositoryName;
-        this.store = new JsonRedisStore<>(redisTemplate, entityType);
+        this.store = new JsonRedisStore<>(redisTemplate, entityType, repositoryKey);
         this.mutexes = new RedisMutexes<>(redisTemplate, repositoryKey, 30000L);
         this.redisTemplate = redisTemplate;
         AppContext.registerRepository(this);

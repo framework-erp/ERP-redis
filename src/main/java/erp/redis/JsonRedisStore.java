@@ -28,13 +28,13 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
     private PipelineProcessListener pipelineProcessListener;
     ObjectMapper mapper;
 
-    public JsonRedisStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType) {
+    public JsonRedisStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType, String repositoryKey) {
         if (redisTemplate == null) {
             initAsMock();
             return;
         }
         this.redisTemplate = redisTemplate;
-        this.repositoryKey = entityType.getSimpleName();
+        this.repositoryKey = repositoryKey;
         this.entityType = entityType;
         this.pipelineProcessListener = AppContext.getProcessListener(PipelineProcessListener.class);
         mapper = new ObjectMapper();
