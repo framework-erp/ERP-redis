@@ -36,6 +36,8 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
     @Override
     public void insert(ID id, E entity) {
         delegate.insert(id, entity);
+        SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
+        setOperations.add(keyOfKeySet, id.toString());
     }
 
     @Override
