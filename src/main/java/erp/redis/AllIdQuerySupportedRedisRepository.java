@@ -2,6 +2,8 @@ package erp.redis;
 
 import erp.AppContext;
 import erp.repository.Repository;
+import erp.repository.impl.mem.MemMutexes;
+import erp.repository.impl.mem.MemStore;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
@@ -18,6 +20,12 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
     protected long scanSleepTime = 100;
 
     protected AllIdQuerySupportedRedisRepository(RedisTemplate<String, Object> redisTemplate) {
+        if (redisTemplate == null) {
+            this.store = new MemStore<>();
+            this.mutexes = new MemMutexes<>();
+            AppContext.registerRepository(this);
+            return;
+        }
         this.repositoryKey = entityType.getSimpleName();
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
         this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
@@ -28,6 +36,12 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
 
     protected AllIdQuerySupportedRedisRepository(RedisTemplate<String, Object> redisTemplate, String repositoryName) {
         super(repositoryName);
+        if (redisTemplate == null) {
+            this.store = new MemStore<>();
+            this.mutexes = new MemMutexes<>();
+            AppContext.registerRepository(this);
+            return;
+        }
         this.repositoryKey = repositoryName;
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
         this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
@@ -38,6 +52,12 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
 
     public AllIdQuerySupportedRedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass) {
         super(entityClass);
+        if (redisTemplate == null) {
+            this.store = new MemStore<>();
+            this.mutexes = new MemMutexes<>();
+            AppContext.registerRepository(this);
+            return;
+        }
         this.repositoryKey = entityClass.getSimpleName();
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
         this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
@@ -48,6 +68,12 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
 
     public AllIdQuerySupportedRedisRepository(RedisTemplate<String, Object> redisTemplate, Class<E> entityClass, String repositoryName) {
         super(entityClass, repositoryName);
+        if (redisTemplate == null) {
+            this.store = new MemStore<>();
+            this.mutexes = new MemMutexes<>();
+            AppContext.registerRepository(this);
+            return;
+        }
         this.repositoryKey = repositoryName;
         this.keyOfKeySet = "repositorykeyset:" + repositoryKey;
         this.store = new KeySetAttachedRedisStore(new JsonRedisStore<>(redisTemplate, entityType, repositoryKey), redisTemplate, keyOfKeySet);
@@ -58,6 +84,9 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
 
     @Override
     public E take(ID id) {
+        if (redisTemplate == null) {
+            return super.take(id);
+        }
         E entity = super.take(id);
         if (entity == null) {
             //Repository的takeOrPutIfAbsent方法的逻辑认为空entity是没有锁的，所以这里要解锁
