@@ -13,14 +13,9 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
     RedisTemplate<String, Object> redisTemplate;
     private String mutexesKey;
-    private boolean mock;
     private long maxLockTime;
 
     public RedisMutexes(RedisTemplate<String, Object> redisTemplate, String mutexesKey, long maxLockTime) {
-        if (redisTemplate == null) {
-            mock = true;
-            return;
-        }
         this.redisTemplate = redisTemplate;
         this.maxLockTime = maxLockTime;
         this.mutexesKey = mutexesKey;
@@ -29,9 +24,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public int lock(ID id, String processName) {
-        if (mock) {
-            return 1;
-        }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set ? 1 : 0;
@@ -39,9 +31,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public boolean newAndLock(ID id, String processName) {
-        if (mock) {
-            return true;
-        }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
         return set;
@@ -49,9 +38,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public void unlockAll(Set<Object> ids) {
-        if (mock) {
-            return;
-        }
         List<String> strIdList = new ArrayList<>();
         for (Object id : ids) {
             strIdList.add(getKey((ID) id));
@@ -60,17 +46,11 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
     }
 
     public void unlock(ID id) {
-        if (mock) {
-            return;
-        }
         redisTemplate.delete(getKey(id));
     }
 
     @Override
     public String getLockProcess(ID id) {
-        if (mock) {
-            return null;
-        }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         String lockProcess = (String) valueOperations.get(getKey(id));
         return lockProcess;
@@ -78,9 +58,6 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public void removeAll(Set<Object> ids) {
-        if (mock) {
-            return;
-        }
         List<String> strIdList = new ArrayList<>();
         for (Object id : ids) {
             strIdList.add(getKey((ID) id));

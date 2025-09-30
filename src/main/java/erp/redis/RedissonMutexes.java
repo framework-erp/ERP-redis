@@ -17,14 +17,9 @@ import java.util.concurrent.TimeUnit;
 public class RedissonMutexes<ID> implements Mutexes<ID> {
     private RedissonClient redissonClient;
     private String entityType;
-    private boolean mock;
     private long maxLockTime;
 
     public RedissonMutexes(RedisTemplate<String, Object> redisTemplate, String entityType, long maxLockTime) {
-        if (redisTemplate == null) {
-            mock = true;
-            return;
-        }
         this.redissonClient = getRedissonClientFromTemplate(redisTemplate);
         this.maxLockTime = maxLockTime;
         this.entityType = entityType;
@@ -51,9 +46,6 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public int lock(ID id, String processName) {
-        if (mock) {
-            return 1;
-        }
         RLock lock = redissonClient.getLock(getLockName(id));
         if (!lock.isLocked()) {
             return -1;
@@ -73,9 +65,6 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public boolean newAndLock(ID id, String processName) {
-        if (mock) {
-            return true;
-        }
         RLock lock = redissonClient.getLock(getLockName(id));
         try {
             if (lock.tryLock(0, maxLockTime, TimeUnit.MILLISECONDS)) {
@@ -90,9 +79,6 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public void unlockAll(Set<Object> ids) {
-        if (mock) {
-            return;
-        }
         for (Object id : ids) {
             RLock lock = redissonClient.getLock(getLockName((ID) id));
             lock.unlock();
@@ -101,18 +87,12 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
 
     @Override
     public String getLockProcess(ID id) {
-        if (mock) {
-            return null;
-        }
         RBucket<String> processNameRBucket = redissonClient.getBucket(getProcessNameRBucketKey(id));
         return processNameRBucket.get();
     }
 
     @Override
     public void removeAll(Set<Object> ids) {
-        if (mock) {
-            return;
-        }
         for (Object id : ids) {
             RBucket<String> processNameRBucket = redissonClient.getBucket(getProcessNameRBucketKey((ID) id));
             processNameRBucket.delete();

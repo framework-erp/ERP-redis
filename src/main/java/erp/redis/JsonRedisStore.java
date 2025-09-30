@@ -13,7 +13,6 @@ import erp.redis.pipeline.PipelineProcessContext;
 import erp.redis.pipeline.PipelineProcessListener;
 import erp.redis.pipeline.ThreadBoundPipelineProcessContextArray;
 import erp.repository.Store;
-import erp.repository.impl.mem.MemStore;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -24,15 +23,10 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
     private Class<E> entityType;
     private RedisTemplate<String, Object> redisTemplate;
     private String repositoryKey;
-    private MemStore<E, ID> mockStore;
     private PipelineProcessListener pipelineProcessListener;
     ObjectMapper mapper;
 
     public JsonRedisStore(RedisTemplate<String, Object> redisTemplate, Class<E> entityType, String repositoryKey) {
-        if (redisTemplate == null) {
-            initAsMock();
-            return;
-        }
         this.redisTemplate = redisTemplate;
         this.repositoryKey = repositoryKey;
         this.entityType = entityType;
@@ -46,19 +40,8 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
         mapper.setVisibility(PropertyAccessor.IS_GETTER, JsonAutoDetect.Visibility.NONE);
     }
 
-    private void initAsMock() {
-        mockStore = new MemStore<E, ID>();
-    }
-
-    private boolean isMock() {
-        return mockStore != null;
-    }
-
     @Override
     public E load(ID id) {
-        if (isMock()) {
-            return mockStore.load(id);
-        }
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         String entityJson = (String) valueOperations.get(getKey(id));
         if (entityJson == null) {
@@ -75,10 +58,6 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
 
     @Override
     public void insert(ID id, E entity) {
-        if (isMock()) {
-            mockStore.insert(id, entity);
-            return;
-        }
         String key = getKey(id);
         String entityJson = null;
         try {
@@ -95,10 +74,6 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
 
     @Override
     public void saveAll(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate) {
-        if (isMock()) {
-            mockStore.saveAll(entitiesToInsert, entitiesToUpdate);
-            return;
-        }
         if (isPipelineProcess()) {
             PipelineProcessContext pipelineProcessContext = ThreadBoundPipelineProcessContextArray.getProcessContext();
             if (entitiesToInsert != null && !entitiesToInsert.isEmpty()) {
@@ -158,10 +133,6 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
 
     @Override
     public void removeAll(Set<Object> ids) {
-        if (isMock()) {
-            mockStore.removeAll(ids);
-            return;
-        }
         if (ids.isEmpty()) {
             return;
         }

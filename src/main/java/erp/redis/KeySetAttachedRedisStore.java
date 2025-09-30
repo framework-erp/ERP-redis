@@ -8,7 +8,6 @@ import erp.redis.pipeline.PipelineProcessContext;
 import erp.redis.pipeline.PipelineProcessListener;
 import erp.redis.pipeline.ThreadBoundPipelineProcessContextArray;
 import erp.repository.Store;
-import erp.repository.impl.mem.MemStore;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 
@@ -21,41 +20,21 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
     private RedisTemplate<String, Object> redisTemplate;
     private String keyOfKeySet;
     private PipelineProcessListener pipelineProcessListener;
-    private MemStore<E, ID> mockStore;
 
     public KeySetAttachedRedisStore(Store<E, ID> delegate, RedisTemplate<String, Object> redisTemplate, String keyOfKeySet) {
-        if (redisTemplate == null) {
-            initAsMock();
-            return;
-        }
         this.delegate = delegate;
         this.redisTemplate = redisTemplate;
         this.keyOfKeySet = keyOfKeySet;
         this.pipelineProcessListener = AppContext.getProcessListener(PipelineProcessListener.class);
     }
 
-    private void initAsMock() {
-        mockStore = new MemStore<E, ID>();
-    }
-
-    private boolean isMock() {
-        return mockStore != null;
-    }
-
     @Override
     public E load(ID id) {
-        if (isMock()) {
-            return mockStore.load(id);
-        }
         return delegate.load(id);
     }
 
     @Override
     public void insert(ID id, E entity) {
-        if (isMock()) {
-            mockStore.insert(id, entity);
-            return;
-        }
         delegate.insert(id, entity);
         SetOperations<String, Object> setOperations = redisTemplate.opsForSet();
         setOperations.add(keyOfKeySet, id.toString());
@@ -63,10 +42,6 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
 
     @Override
     public void saveAll(Map<Object, Object> entitiesToInsert, Map<Object, ProcessEntity> entitiesToUpdate) {
-        if (isMock()) {
-            mockStore.saveAll(entitiesToInsert, entitiesToUpdate);
-            return;
-        }
         delegate.saveAll(entitiesToInsert, entitiesToUpdate);
         if (redisTemplate == null) {
             return;
@@ -89,10 +64,6 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
 
     @Override
     public void removeAll(Set<Object> ids) {
-        if (isMock()) {
-            mockStore.removeAll(ids);
-            return;
-        }
         delegate.removeAll(ids);
         if (redisTemplate == null) {
             return;
