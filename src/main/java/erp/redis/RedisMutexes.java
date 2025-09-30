@@ -60,6 +60,9 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
     }
 
     public void unlock(ID id) {
+        if (mock) {
+            return;
+        }
         redisTemplate.delete(getKey(id));
     }
 
