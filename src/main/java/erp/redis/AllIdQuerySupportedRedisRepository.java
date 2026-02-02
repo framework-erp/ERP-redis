@@ -1,8 +1,6 @@
 package erp.redis;
 
 import erp.AppContext;
-import erp.process.ProcessContext;
-import erp.process.ThreadBoundProcessContextArray;
 import erp.repository.Repository;
 import erp.repository.impl.mem.MemMutexes;
 import erp.repository.impl.mem.MemStore;
@@ -101,33 +99,16 @@ public class AllIdQuerySupportedRedisRepository<E, ID> extends Repository<E, ID>
         if (ids == null || ids.isEmpty()) {
             return new ArrayList<>();
         }
-        List<E> result = new ArrayList<>();
-        List<ID> idsToLoad = new ArrayList<>();
-
-        ProcessContext processContext = ThreadBoundProcessContextArray.getProcessContext();
-        for (ID id : ids) {
-            if (processContext != null && processContext.isStarted()) {
-                E entity = processContext.copyEntityInProcess(name, id);
-                if (entity != null) {
-                    result.add(entity);
-                    continue;
-                }
-            }
-            idsToLoad.add(id);
+        if (store instanceof JsonRedisStore) {
+            return ((JsonRedisStore<E, ID>) store).loadAll(ids);
+        } else if (store instanceof KeySetAttachedRedisStore) {
+            return ((KeySetAttachedRedisStore<E, ID>) store).loadAll(ids);
         }
-
-        if (!idsToLoad.isEmpty()) {
-            if (store instanceof JsonRedisStore) {
-                result.addAll(((JsonRedisStore<E, ID>) store).loadAll(idsToLoad));
-            } else if (store instanceof KeySetAttachedRedisStore) {
-                result.addAll(((KeySetAttachedRedisStore<E, ID>) store).loadAll(idsToLoad));
-            } else {
-                for (ID id : idsToLoad) {
-                    E entity = find(id);
-                    if (entity != null) {
-                        result.add(entity);
-                    }
-                }
+        List<E> result = new ArrayList<>();
+        for (ID id : ids) {
+            E entity = find(id);
+            if (entity != null) {
+                result.add(entity);
             }
         }
         return result;
