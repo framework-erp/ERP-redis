@@ -17,6 +17,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JsonRedisStore<E, ID> implements Store<E, ID> {
 
@@ -54,6 +55,28 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
             throw new RuntimeException(e);
         }
         return entity;
+    }
+
+    public List<E> loadAll(List<ID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> keys = ids.stream().map(this::getKey).collect(Collectors.toList());
+        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+        List<Object> values = valueOperations.multiGet(keys);
+        if (values == null) {
+            return new ArrayList<>();
+        }
+        return values.stream()
+                .filter(Objects::nonNull)
+                .map(v -> {
+                    try {
+                        return mapper.readValue((String) v, entityType);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

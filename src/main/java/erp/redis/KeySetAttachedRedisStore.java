@@ -11,6 +11,7 @@ import erp.repository.Store;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,21 @@ public class KeySetAttachedRedisStore<E, ID> implements Store<E, ID> {
     @Override
     public E load(ID id) {
         return delegate.load(id);
+    }
+
+    public List<E> loadAll(List<ID> ids) {
+        if (delegate instanceof JsonRedisStore) {
+            return ((JsonRedisStore<E, ID>) delegate).loadAll(ids);
+        }
+        // Fallback for other store types if needed, though usually it's JsonRedisStore
+        java.util.List<E> result = new java.util.ArrayList<>();
+        for (ID id : ids) {
+            E entity = load(id);
+            if (entity != null) {
+                result.add(entity);
+            }
+        }
+        return result;
     }
 
     @Override
