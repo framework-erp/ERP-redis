@@ -12,6 +12,7 @@ import java.util.Set;
 
 public class ERPRedis {
     public static void usePipelineAnnotation() {
+        //----
         // 配置 Reflections 扫描整个类路径
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .forPackages("") // 扫描所有包
