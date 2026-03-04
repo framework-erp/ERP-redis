@@ -1,5 +1,6 @@
 package erp.redis;
 
+import erp.repository.LockResult;
 import erp.repository.Mutexes;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -23,10 +24,14 @@ public class RedisMutexes<ID> implements Mutexes<ID> {
 
 
     @Override
-    public int lock(ID id, String processName) {
+    public LockResult lock(ID id, String processName) {
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-        boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
-        return set ? 1 : 0;
+        Boolean set = valueOperations.setIfAbsent(getKey(id), processName, maxLockTime, TimeUnit.MILLISECONDS);
+        if (set != null && set) {
+            return LockResult.success();
+        } else {
+            return LockResult.failed(getLockProcess(id));
+        }
     }
 
     @Override

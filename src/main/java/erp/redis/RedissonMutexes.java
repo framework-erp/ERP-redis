@@ -1,5 +1,6 @@
 package erp.redis;
 
+import erp.repository.LockResult;
 import erp.repository.Mutexes;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
@@ -45,21 +46,21 @@ public class RedissonMutexes<ID> implements Mutexes<ID> {
     }
 
     @Override
-    public int lock(ID id, String processName) {
+    public LockResult lock(ID id, String processName) {
         RLock lock = redissonClient.getLock(getLockName(id));
         if (!lock.isLocked()) {
-            return -1;
+            return LockResult.notFound();
         }
         try {
             if (lock.tryLock(0, maxLockTime, TimeUnit.MILLISECONDS)) {
                 RBucket<String> processNameRBucket = redissonClient.getBucket(getProcessNameRBucketKey(id));
                 processNameRBucket.set(processName);
-                return 1;
+                return LockResult.success();
             } else {
-                return 0;
+                return LockResult.failed(getLockProcess(id));
             }
         } catch (InterruptedException e) {
-            return 0;
+            return LockResult.failed(getLockProcess(id));
         }
     }
 
