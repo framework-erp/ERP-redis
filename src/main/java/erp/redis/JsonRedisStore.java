@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import erp.AppContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import erp.process.ProcessEntity;
 import erp.process.ThreadBoundProcessContextArray;
 import erp.redis.pipeline.Operations;
@@ -21,6 +23,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JsonRedisStore<E, ID> implements Store<E, ID> {
+
+    private static final Logger log = LoggerFactory.getLogger(JsonRedisStore.class);
 
     private Class<E> entityType;
     private RedisTemplate<String, Object> redisTemplate;
@@ -50,13 +54,12 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
         if (entityJson == null) {
             return null;
         }
-        E entity = null;
         try {
-            entity = mapper.readValue(entityJson, entityType);
+            return mapper.readValue(entityJson, entityType);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            log.warn("Failed to deserialize entity [key={}], returning null. Cause: {}", getKey(id), e.getMessage());
+            return null;
         }
-        return entity;
     }
 
     public List<E> loadAll(List<ID> ids) {
@@ -75,9 +78,11 @@ public class JsonRedisStore<E, ID> implements Store<E, ID> {
                     try {
                         return mapper.readValue((String) v, entityType);
                     } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
+                        log.warn("Failed to deserialize entity in loadAll, skipping. Cause: {}", e.getMessage());
+                        return null;
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
